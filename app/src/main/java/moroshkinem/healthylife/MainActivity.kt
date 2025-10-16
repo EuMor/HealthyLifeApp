@@ -9,11 +9,13 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.room.Room
 import androidx.work.Constraints
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.NetworkType
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
+import moroshkinem.healthylife.data.database.AppDatabase
 import moroshkinem.healthylife.data.model.MedicationCourse
 import moroshkinem.healthylife.util.ReminderReceiver
 import moroshkinem.healthylife.workers.StepReminderWorker
@@ -23,6 +25,8 @@ import java.util.Calendar
 import java.util.concurrent.TimeUnit
 
 class MainActivity : ComponentActivity() {
+    val Context.appDatabase: AppDatabase
+        get() = Room.databaseBuilder(this, AppDatabase::class.java, "healthy_life_db").build()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 

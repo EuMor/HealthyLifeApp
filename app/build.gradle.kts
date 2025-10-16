@@ -80,4 +80,9 @@ dependencies {
     implementation(libs.mpandroidchart)
     implementation(libs.androidx.compose.material.icons.extended)
 
+    implementation("androidx.health.connect:connect-client:1.1.0-alpha06")
+    //implementation("androidx.health.connect:connect-datatypes:1.1.0")
+// Permissions helper (optional)
+    //implementation("androidx.health.connect:connect-integration:1.1.0")
+
 }

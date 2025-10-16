@@ -149,6 +149,7 @@ class HomeViewModel(
         viewModelScope.launch {
             val today = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE)
             medicationRepository.markAsTaken(courseId, today)
+
         }
     }
 

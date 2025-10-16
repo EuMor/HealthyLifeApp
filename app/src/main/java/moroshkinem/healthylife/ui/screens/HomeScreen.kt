@@ -2,6 +2,7 @@ package moroshkinem.healthylife.ui.screens
 
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
@@ -23,6 +24,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import moroshkinem.healthylife.ui.components.CircularProgressIndicatorWithLabel
+import moroshkinem.healthylife.ui.components.MedicationCard
 import moroshkinem.healthylife.ui.components.ProgressItem
 import moroshkinem.healthylife.ui.components.ProgressRings
 import moroshkinem.healthylife.ui.viewmodels.HomeViewModel
@@ -32,7 +34,8 @@ fun HomeScreen(
     viewModel: HomeViewModel,
     navigateToWater: () -> Unit,
     navigateToStats: () -> Unit,
-    navigateToProfile: () -> Unit
+    navigateToProfile: () -> Unit,
+    navigateToMedical:() -> Unit
 ) {
     val state by viewModel.uiState.collectAsState()
     val steps by viewModel.steps.collectAsState()
@@ -69,37 +72,85 @@ fun HomeScreen(
             }
         }
     ) { padding ->
-        Column(
+        LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(16.dp)
-                .verticalScroll(scrollState),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(24.dp)
-        ) {
-            Text("Твой прогресс", style = MaterialTheme.typography.headlineMedium)
+                .padding(16.dp),
+                //.verticalScroll(rememberScrollState()),
 
-//            CircularProgressIndicatorWithLabel(
-//                progress = state.progress,
-//                waterAmount = state.amount,
-//                goal = state.goal
-//            )
-//
-//            Row(
-//                modifier = Modifier.fillMaxWidth(),
-//                horizontalArrangement = Arrangement.SpaceEvenly
-//            ) {
-//                StatsItem(label = "Шаги", value = "$steps")
-//                StatsItem(label = "Калории", value = "$calories")
-//            }
-            // 👉 Горизонтальный список колец с подписями
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .horizontalScroll(rememberScrollState()),
-                horizontalArrangement = Arrangement.spacedBy(24.dp)
-            ) {
+            verticalArrangement = Arrangement.spacedBy(24.dp),
+            contentPadding = PaddingValues(bottom = 16.dp)  // ✅ Bottom padding for buttons
+        ) {
+            // ✅ Item 1: Заголовок
+            item {
+                Text(
+                    "Твой прогресс",
+                    style = MaterialTheme.typography.headlineMedium
+                )
+            }
+
+            // ✅ Item 2: Основные метрики Row
+            item {
+                Text("Ежедневные цели", style = MaterialTheme.typography.titleLarge)
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .horizontalScroll(rememberScrollState()),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    ProgressItem(
+                        label = "Вода",
+                        icon = Icons.Default.LocalDrink,
+                        progress = state.waterProgress,
+                        valueText = "${state.waterAmount} мл",
+                        goalText = "${state.waterGoal} мл",
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    ProgressItem(
+                        label = "Шаги",
+                        icon = Icons.Default.DirectionsWalk,
+                        progress = stepsProgress,
+                        valueText = steps.toString(),
+                        goalText = profile.dailyStepGoal.toString(),
+                        color = MaterialTheme.colorScheme.tertiary
+                    )
+                    ProgressItem(
+                        label = "Калории",
+                        icon = Icons.Default.LocalFireDepartment,
+                        progress = caloriesProgress,
+                        valueText = state.caloriesConsumed.toString(),
+                        goalText = state.calorieGoal.toString(),
+                        color = MaterialTheme.colorScheme.secondary
+                    )
+                    ProgressItem(
+                        label = "Сон",
+                        icon = Icons.Default.Hotel,
+                        progress = state.sleepProgress,
+                        valueText = String.format("%.1f ч", state.sleepHours),
+                        goalText = String.format("%.1f ч", state.sleepGoal),
+                        color = Color(0xFF8B00FF)
+                    )
+                }
+            }
+
+            // ✅ Item 3: Медикаменты
+            item {
+                if (medicationProgresses.isNotEmpty()) {
+                    Text("Курсы лекарств", style = MaterialTheme.typography.titleLarge)
+                }
+            }
+            items(medicationProgresses) { progress ->
+                MedicationCard(  // Твой компонент
+                    progress = progress,
+                    onMarkTaken = { viewModel.markMedicationToday(progress.course.id) }
+                )
+            }
+
+
+            // ✅ Item 4: ProgressRings (если нужен)
+            item {
+
                 ProgressItem(
                     label = "Вода",
                     icon = Icons.Default.LocalDrink,
@@ -133,72 +184,34 @@ fun HomeScreen(
                     color = Color(0xFF8B00FF)
                 )
             }
-            Spacer(Modifier.height(16.dp))
 
-            // В Row с прогрессами
-            LazyRow(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                items(medicationProgresses) { progress ->  // ✅ items emit'ит composables
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        ProgressItem(
-                            label = progress.course.name,
-                            icon = Icons.Default.LocalPharmacy,
-                            progress = progress.progress,
-                            valueText = "${progress.completedDays}",
-                            goalText = "${progress.totalDays}",
-                            color = if (progress.todayIntake?.isTaken == true) Color.Green else MaterialTheme.colorScheme.error
-                        )
-                        if (progress.todayIntake?.isTaken == false) {
-                            Button(
-                                onClick = { viewModel.markMedicationToday(progress.course.id) }
-                            ) {
-                                Text("Принял")
-                            }
-                        }
-                    }
+            // ✅ Item 5: Stats Row
+            item {
+                Text("Статистика", style = MaterialTheme.typography.titleLarge)
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .horizontalScroll(rememberScrollState()),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    StatsItem("Вода", "${state.waterAmount}/${state.waterGoal} мл")
+                    StatsItem("Шаги", "$steps/${profile.dailyStepGoal}")
+                    StatsItem("Калории", "${state.caloriesConsumed}/${state.calorieGoal}")
+                    StatsItem("Сон", String.format("%.1f / %.1f ч", state.sleepHours, state.sleepGoal))
                 }
             }
 
-            ProgressRings(
-                waterProgress = state.waterProgress,
-                stepsProgress = stepsProgress,
-                caloriesProgress = caloriesProgress,
-                sleepProgress = state.sleepProgress      // ✅ Новая метрика
-            )
-
-            Spacer(Modifier.height(24.dp))
-
-            // Метрики
-            Row(Modifier.fillMaxWidth().horizontalScroll(scrollStateMetrics), horizontalArrangement = Arrangement.SpaceEvenly) {
-                // Вода
-                StatsItem("Вода", "${state.waterAmount}/${state.waterGoal} мл")
-                Spacer(Modifier.width(24.dp))
-                StatsItem("Калории", "${state.caloriesConsumed - caloriesBurned}/${state.calorieGoal}")
-                Spacer(Modifier.width(24.dp))
-                // Шаги
-                StatsItem("Шаги", "$steps/${profile.dailyStepGoal}")
-                Spacer(Modifier.width(24.dp))
-                // Калории
-                StatsItem("Еда/Сож.", "${state.caloriesConsumed}/${state.calorieGoal} кал")
-                Spacer(Modifier.width(24.dp))
-                // Сон
-                StatsItem("Сон", String.format("%.1f / %.1f ч", state.sleepHours, state.sleepGoal))
-            }
-            Button(onClick = navigateToWater) {
-                Text("Добавить воду")
-            }
-
-            OutlinedButton(onClick = navigateToStats) {
-                Text("Посмотреть статистику")
-            }
-
-            Button(
-                onClick = viewModel::resetTodayStats,
-                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
-            ) {
-                Text("СБРОС СТАТИСТИКИ (DEBUG)")
+            // ✅ Item 6: Кнопки (fixed в bottom)
+            item {
+                Spacer(Modifier.height(24.dp))
+                Button(onClick = navigateToWater) { Text("Добавить воду") }
+                Spacer(Modifier.height(8.dp))
+                OutlinedButton(onClick = navigateToStats) { Text("Статистика") }
+                Spacer(Modifier.height(8.dp))
+                Button(
+                    onClick = viewModel::resetTodayStats,
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+                ) { Text("СБРОС (DEBUG)") }
             }
         }
     }
