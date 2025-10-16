@@ -32,7 +32,8 @@ fun HomeScreen(
     viewModel: HomeViewModel,
     navigateToWater: () -> Unit,
     navigateToStats: () -> Unit,
-    navigateToProfile: () -> Unit
+    navigateToProfile: () -> Unit,
+    navigateToMedical:() -> Unit
 ) {
     val state by viewModel.uiState.collectAsState()
     val steps by viewModel.steps.collectAsState()
@@ -199,6 +200,9 @@ fun HomeScreen(
                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
             ) {
                 Text("СБРОС СТАТИСТИКИ (DEBUG)")
+            }
+            Button(onClick = navigateToMedical) {
+                Text("Добавить курс таблеток")
             }
         }
     }

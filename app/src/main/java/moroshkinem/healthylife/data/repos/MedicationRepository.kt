@@ -47,30 +47,21 @@ class MedicationRepository(private val dao: MedicationDao) {
     }
 
     suspend fun getCourseProgress(courseId: Long): CourseProgress {
-        val course = dao.getCourseById(courseId) ?: return CourseProgress(
-            MedicationCourse(), 0, 0, 0f, null
-        )  // ✅ Fetch course
-        val intakes = dao.getProgressForCourse(courseId)
+        val course = dao.getCourseById(courseId) ?: return CourseProgress(MedicationCourse(), 0, 0, 0f, null)
+        val intakes = dao.getIntakesForCourse(courseId)
         val completed = intakes.count { it.isTaken }
-        val total = course.durationDays.coerceAtLeast(1)   // ✅ Используй из course
+        val total = course.durationDays.coerceAtLeast(1)
         val todayDate = LocalDate.now().format(formatter)
         val todayIntake = intakes.find { it.date == todayDate }
-        return CourseProgress(
-            course, completed, total,
-            if (total > 0) (completed / total.toFloat()).coerceIn(0f, 1f) else 0f,
-            todayIntake
-        )
+        return CourseProgress(course, completed, total, (completed / total.toFloat()).coerceIn(0f, 1f), todayIntake)
     }
     // ✅ Новый метод: Flow прогрессов (для избежания suspend в ViewModel)
     fun getActiveCoursesProgressFlow(): Flow<List<CourseProgress>> = getActiveCoursesFlow()
         .flatMapLatest { courses ->
-            combine(
-                courses.map { course ->
-                    flow {
-                        emit(getCourseProgress(course.id))
-                    }
-                }
-            ) { progresses -> progresses.toList() }
+            combine(courses.map { course ->
+                flow { emit(getCourseProgress(course.id)) }
+            }) { array -> array.toList() }
         }
+
 
 }

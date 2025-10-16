@@ -20,23 +20,15 @@ interface MedicationDao {
     @Query("SELECT * FROM medication_courses WHERE isActive = 1")
     fun getActiveCoursesFlow(): Flow<List<MedicationCourse>>
 
+    @Query("SELECT * FROM medication_courses WHERE id = :id")
+    suspend fun getCourseById(id: Long): MedicationCourse?
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertDailyIntake(intake: DailyIntake)
 
-    @Query("""
-        SELECT * FROM daily_intakes 
-        WHERE courseId = :courseId AND date = :date
-    """)
+    @Query("SELECT * FROM daily_intakes WHERE courseId = :courseId AND date = :date")
     suspend fun getDailyIntake(courseId: Long, date: String): DailyIntake?
 
-    @Query("""
-        SELECT di.*, mc.* FROM daily_intakes di
-        JOIN medication_courses mc ON di.courseId = mc.id
-        WHERE mc.id = :courseId
-    """)
-    suspend fun getProgressForCourse(courseId: Long): List<DailyIntake>
-
-
-    @Query("SELECT * FROM medication_courses WHERE id = :id")
-    suspend fun getCourseById(id: Long): MedicationCourse?
+    @Query("SELECT * FROM daily_intakes WHERE courseId = :courseId ORDER BY date")
+    suspend fun getIntakesForCourse(courseId: Long): List<DailyIntake>
 }

@@ -22,7 +22,9 @@ import moroshkinem.healthylife.data.repos.SleepRepository
 import moroshkinem.healthylife.data.repos.StepsRepository
 import moroshkinem.healthylife.data.repos.WaterRepository
 import moroshkinem.healthylife.data.sensors.StepCounterManager
+import moroshkinem.healthylife.ui.screens.AddMedicationScreen
 import moroshkinem.healthylife.ui.screens.HomeScreen
+import moroshkinem.healthylife.ui.screens.MedicationViewModelFactory
 import moroshkinem.healthylife.ui.screens.ProfileScreen
 import moroshkinem.healthylife.ui.screens.StatsScreen
 import moroshkinem.healthylife.ui.screens.WaterScreen
@@ -103,7 +105,8 @@ fun HealthyLifeAppUI() {
                         viewModel = homeViewModel,
                         navigateToWater = { navController.navigate("water") },
                         navigateToStats = { navController.navigate("stats") },
-                        navigateToProfile = { navController.navigate("profile") }
+                        navigateToProfile = { navController.navigate("profile") },
+                        navigateToMedical = { navController.navigate("medical") }
                     )
                 }
                 composable("water") {
@@ -145,6 +148,15 @@ fun HealthyLifeAppUI() {
                         }
                     )
                     ProfileScreen(viewModel = profileViewModel)
+
+                }
+                composable("medical") {
+                    AddMedicationScreen(
+                        viewModel = viewModel(factory = MedicationViewModelFactory(
+                            appComponent.medicationRepository,
+                            appComponent.dataStoreManager
+                        ))
+                    )
                 }
             }
         }
