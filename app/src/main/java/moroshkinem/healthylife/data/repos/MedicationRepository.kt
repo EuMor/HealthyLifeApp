@@ -39,44 +39,38 @@ class MedicationRepository(private val dao: MedicationDao) {
     }
 
     suspend fun markAsTaken(courseId: Long, date: String) {
-        //Log.d("MedicationRepo", "Marking taken for course $courseId, date $date")
-
-        // ✅ CREATE if not exists
-        var intake = dao.getDailyIntake(courseId, date)
-        if (intake == null) {
-            intake = DailyIntake(courseId, date)  // ✅ Создать новую
-            dao.insertDailyIntake(intake)
-        }
-
-        val updated = intake.copy(
+        val intake = dao.getDailyIntake(courseId, date)?.copy(
             isTaken = true,
             takenTime = LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm"))
-        )
-        dao.insertDailyIntake(updated)
-        //Log.d("MedicationRepo", "Updated intake: $updated")
+        ) ?: return
+        dao.insertDailyIntake(intake)
     }
 
     suspend fun getCourseProgress(courseId: Long): CourseProgress {
-        val course = dao.getCourseById(courseId) ?: return CourseProgress(MedicationCourse(), 0, 0, 0f, null)
-        val intakes = dao.getIntakesForCourse(courseId)
+        val course = dao.getCourseById(courseId) ?: return CourseProgress(
+            MedicationCourse(), 0, 0, 0f, null
+        )  // ✅ Fetch course
+        val intakes = dao.getProgressForCourse(courseId)
         val completed = intakes.count { it.isTaken }
-        val total = course.durationDays.coerceAtLeast(1)
+        val total = course.durationDays.coerceAtLeast(1)   // ✅ Используй из course
         val todayDate = LocalDate.now().format(formatter)
         val todayIntake = intakes.find { it.date == todayDate }
-        return CourseProgress(course, completed, total, (completed / total.toFloat()).coerceIn(0f, 1f), todayIntake)
+        return CourseProgress(
+            course, completed, total,
+            if (total > 0) (completed / total.toFloat()).coerceIn(0f, 1f) else 0f,
+            todayIntake
+        )
     }
     // ✅ Новый метод: Flow прогрессов (для избежания suspend в ViewModel)
-    fun getCourseProgressFlow(courseId: Long): Flow<CourseProgress> = flow {
-        emit(getCourseProgress(courseId))
-    }
     fun getActiveCoursesProgressFlow(): Flow<List<CourseProgress>> = getActiveCoursesFlow()
         .flatMapLatest { courses ->
             combine(
                 courses.map { course ->
-                    getCourseProgressFlow(course.id)  // ✅ Flow per course
+                    flow {
+                        emit(getCourseProgress(course.id))
+                    }
                 }
             ) { progresses -> progresses.toList() }
         }
-
 
 }

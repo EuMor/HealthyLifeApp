@@ -213,6 +213,9 @@ fun HomeScreen(
                     colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
                 ) { Text("СБРОС (DEBUG)") }
             }
+            Button(onClick = navigateToMedical) {
+                Text("Добавить курс таблеток")
+            }
         }
     }
 }
