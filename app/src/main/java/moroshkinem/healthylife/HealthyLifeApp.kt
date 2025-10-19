@@ -31,6 +31,7 @@ import moroshkinem.healthylife.ui.screens.WaterScreen
 import moroshkinem.healthylife.ui.theme.HealthyLifeAppTheme
 import moroshkinem.healthylife.ui.viewmodels.HomeViewModel
 import moroshkinem.healthylife.ui.viewmodels.HomeViewModelFactory
+import moroshkinem.healthylife.ui.viewmodels.MedicationViewModel
 import moroshkinem.healthylife.ui.viewmodels.ProfileViewModel
 import moroshkinem.healthylife.ui.viewmodels.StatsViewModel
 import moroshkinem.healthylife.ui.viewmodels.WaterViewModel
@@ -73,6 +74,14 @@ fun HealthyLifeAppUI() {
     val navController = rememberNavController()
     //val appComponent = getAppComponent() // ✅ Теперь доступно
 
+
+    val medicationViewModel: MedicationViewModel = viewModel(
+        factory = MedicationViewModelFactory(  // <- ты же используешь Factory
+            appComponent.medicationRepository,
+            appComponent.dataStoreManager
+        )
+    )
+
     val homeViewModel: HomeViewModel = viewModel(
         factory = HomeViewModelFactory(
             waterRepository = appComponent.waterRepository,
@@ -103,6 +112,7 @@ fun HealthyLifeAppUI() {
                 composable("home") {
                     HomeScreen(
                         viewModel = homeViewModel,
+                        medicationViewModel = medicationViewModel,
                         navigateToWater = { navController.navigate("water") },
                         navigateToStats = { navController.navigate("stats") },
                         navigateToProfile = { navController.navigate("profile") },

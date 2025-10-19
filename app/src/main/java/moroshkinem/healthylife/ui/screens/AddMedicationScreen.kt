@@ -179,4 +179,5 @@ class MedicationViewModelFactory(
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }
+
 }

@@ -24,14 +24,16 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import moroshkinem.healthylife.ui.components.CircularProgressIndicatorWithLabel
-import moroshkinem.healthylife.ui.components.MedicationCard
+import moroshkinem.healthylife.ui.components.MedicationCourseCard
 import moroshkinem.healthylife.ui.components.ProgressItem
 import moroshkinem.healthylife.ui.components.ProgressRings
 import moroshkinem.healthylife.ui.viewmodels.HomeViewModel
+import moroshkinem.healthylife.ui.viewmodels.MedicationViewModel
 
 @Composable
 fun HomeScreen(
     viewModel: HomeViewModel,
+    medicationViewModel: MedicationViewModel,
     navigateToWater: () -> Unit,
     navigateToStats: () -> Unit,
     navigateToProfile: () -> Unit,
@@ -141,8 +143,10 @@ fun HomeScreen(
                 }
             }
             items(medicationProgresses) { progress ->
-                MedicationCard(  // Твой компонент
+
+                MedicationCourseCard(
                     progress = progress,
+                    viewModel = medicationViewModel,
                     onMarkTaken = { viewModel.markMedicationToday(progress.course.id) }
                 )
             }
